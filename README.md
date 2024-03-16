@@ -1,1 +1,3 @@
-Hand tracking module to track the hand position with the land mark values
+Hand tracking module to track the hand position with the landmark values
+
+This is from Ayan
