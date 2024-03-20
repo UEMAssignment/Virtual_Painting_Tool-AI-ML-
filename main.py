@@ -2,7 +2,16 @@ import cv2
 import numpy as np
 import os
 import HT_Module as htm
+from PIL import Image
 import time
+from datetime import datetime
+
+def saveImage(imgCanvas):
+    image = Image.fromarray(imgCanvas)
+    path = "Saved"
+    curr_datetime = int(time.time())
+    image.save(f"{path}/image{curr_datetime}.jpg", format="JPEG")
+
 
 folderPath = "header/tools"
 myList = os.listdir(folderPath)
@@ -31,7 +40,7 @@ xp, yp = 0, 0
 mode = "Selection Mode"
 imgCanvas = np.zeros((720, 1280, 3), np.uint8)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, 1280)
 cap.set(4, 720)
 
@@ -40,7 +49,7 @@ detector = htm.HandDetector()
 while True:
     # import the frames
     _, img = cap.read()
-    # img = cv2.flip(img, 1)
+    img = cv2.flip(img, 1)
 
     # find hand landmarks
     img = detector.findHands(img)
@@ -58,7 +67,7 @@ while True:
         # If selection mode -  two fingers are up
         if fingers[1] and fingers[2]:
             mode = "Selection Mode"
-            print("Selection mode")
+            # print("Selection mode")
             xp, yp = 0, 0
             # checking for click
             if y1 < 80:
@@ -91,12 +100,16 @@ while True:
                     header2 = overlayList2[2]
                     paintThickness = 10
                     eraserThickness = 30
+                elif 800 < x1 < 900:
+                    image = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2RGB)
+                    saveImage(image)
+                    mode = "SAVED"
 
         # If drawing mode -  index finger are up
         if fingers[1] and not fingers[2]:
             cv2.circle(img, (x1, y1), 15, paintColor, cv2.FILLED)
             mode = "Drawing Mode"
-            print("Drawing mode")
+            # print("Drawing mode")
             if xp == 0 and yp == 0:
                 xp, yp = x1, y1
             if paintColor == (255, 255, 255):
@@ -122,11 +135,13 @@ while True:
     img[0: 80, 0: 550] = header
     img[0: 80, 582: 790] = header2
     cv2.putText(img, mode, (1100, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
+    cv2.rectangle(img, (800, 0), (900, 80), (0, 0, 255), 3)
+    cv2.putText(img, "SAVE", (820, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
     cv2.imshow("Image", img)
     # gray = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2GRAY)
     # mask = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY_INV)[1]
     # white_mask = cv2.bitwise_not(mask)
     # imgCanvas = cv2.bitwise_and(imgCanvas, imgCanvas, mask=white_mask)
-    # cv2.imshow("ImageCanvas", white_mask)
+    # cv2.imshow("ImageCanvas", imgCanvas)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
